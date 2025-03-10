@@ -1,7 +1,7 @@
 # Advanced HTTP Scraper Library  
 
 ## 📌 Deskripsi  
-Advanced HTTP Scraper Library adalah pustaka PHP yang fleksibel untuk melakukan scraping data dengan fitur:  
+Advanced HTTP Scraper Library adalah Library PHP yang fleksibel untuk melakukan scraping data dengan fitur:  
 - HTTP client berbasis cURL  
 - Rotasi **User-Agent** dan **Proxy**  
 - Batasan kecepatan request (Rate Limiting)  
