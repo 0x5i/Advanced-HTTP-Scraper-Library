@@ -14,8 +14,8 @@ Pastikan PHP Anda memiliki ekstensi **cURL** aktif.
 
 1. **Clone repositori ini:**  
    ```sh
-   git clone https://github.com/username/http-scraper.git
-   cd http-scraper
+   git clone https://github.com/YouJerk/Advanced-HTTP-Scraper-Library/
+   cd Advanced-HTTP-Scraper-Library
    ```
 
 2. **Gunakan dalam proyek PHP:**  
