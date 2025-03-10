@@ -2,9 +2,6 @@
 /**
  * Advanced HTTP Scraper Library
  * Author: A$htaroth
- * 
- * A powerful, flexible HTTP client with built-in regex utilities,
- * JSON handling, proxy rotation, rate limiting, and more.
  */
 
 class HttpClient {
@@ -23,18 +20,11 @@ class HttpClient {
     private $debug = false;
     private $logFile = null;
 
-    // User Agent components
     private static $ua = [
         'os' => ['Windows NT 10.0', 'Macintosh; Intel Mac OS X 10_15_7', 'X11; Ubuntu', 'Android 12; SM-S908B'],
         'browser' => ['Chrome/100.0.4896.127', 'Firefox/99.0', 'Safari/605.1.15', 'Edge/100.0.1185.39']
     ];
 
-    /**
-     * Constructor
-     * 
-     * @param string $baseUrl Base URL for all requests
-     * @param bool $useRandomUA Use random user agent
-     */
     public function __construct($baseUrl = '', $useRandomUA = true) {
         if (!extension_loaded('curl')) throw new Exception('cURL extension required');
         $this->baseUrl = $baseUrl;
@@ -44,7 +34,7 @@ class HttpClient {
             CURLOPT_MAXREDIRS => 5,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_FAILONERROR => true,
+            CURLOPT_FAILONERROR => false,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => 0,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
@@ -56,10 +46,6 @@ class HttpClient {
     public function enableDebug($logFile = null) {
         $this->debug = true;
         $this->logFile = $logFile;
-        if ($logFile) {
-            $this->setOption(CURLOPT_VERBOSE, true);
-            $this->setOption(CURLOPT_STDERR, fopen($logFile, 'a'));
-        }
         return $this;
     }
 
@@ -75,13 +61,14 @@ class HttpClient {
 
     private function rotateProxy() {
         if (empty($this->proxyList)) return $this;
-        for ($i = 0; $i < count($this->proxyList); $i++) {
+        $startIndex = $this->currentProxyIndex;
+        do {
             $this->currentProxyIndex = ($this->currentProxyIndex + 1) % count($this->proxyList);
             $this->setProxy($this->proxyList[$this->currentProxyIndex]);
             if ($this->testProxy($this->proxyList[$this->currentProxyIndex])) {
                 return $this;
             }
-        }
+        } while ($this->currentProxyIndex !== $startIndex);
         return $this;
     }
 
@@ -113,9 +100,10 @@ class HttpClient {
         return $this->executeRequest($url, 'GET');
     }
 
-    public function post($url, $data = [], $contentType = 'application/x-www-form-urlencoded') {
+    public function post($url, $data = [], $contentType = 'application/json') {
         $this->setHeader('Content-Type', $contentType);
-        return $this->executeRequest($url, 'POST', $data);
+        $payload = ($contentType === 'application/json') ? json_encode($data) : http_build_query($data);
+        return $this->executeRequest($url, 'POST', $payload);
     }
 
     private function buildUrl($url, $params) {
@@ -143,6 +131,10 @@ class HttpClient {
             $this->statusCode = curl_getinfo($this->curl, CURLINFO_HTTP_CODE);
             $this->error = curl_error($this->curl);
 
+            if ($this->debug) {
+                $this->logDebug("Request: $url | Status: $this->statusCode | Error: $this->error");
+            }
+
             if ($this->statusCode >= 200 && $this->statusCode < 300) break;
             if ($attempt < $this->maxRetries - 1) {
                 $this->rotateProxy();
@@ -153,9 +145,17 @@ class HttpClient {
     }
 
     private function formatHeaders() {
-        return array_map(function($name, $value) {
-            return "$name: $value";
-        }, array_keys($this->headers), $this->headers);
+        $headers = [];
+        foreach ($this->headers as $name => $value) {
+            $headers[] = "$name: $value";
+        }
+        return $headers;
+    }
+
+    private function logDebug($message) {
+        if ($this->debug) {
+            error_log(date('[Y-m-d H:i:s] ') . $message . PHP_EOL, 3, $this->logFile ?: 'http_debug.log');
+        }
     }
 
     public function getResponse() {
@@ -178,6 +178,10 @@ class HttpClient {
 
     public function setProxy($proxy) {
         $this->setOption(CURLOPT_PROXY, $proxy);
+    }
+
+    public function setTimeout($timeout) {
+        $this->setOption(CURLOPT_TIMEOUT, $timeout);
     }
 
     private function setOption($option, $value) {
