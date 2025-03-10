@@ -98,7 +98,3 @@ Kode ini tersedia di bawah lisensi **MIT**.
 
 ## 🤝 Kontribusi  
 Pull Request dan perbaikan sangat diterima! Jika ada bug, silakan buat **Issue**.  
-
----
-
-Dokumentasi ini cocok untuk GitHub dengan format **terstruktur dan mudah dipahami**.
