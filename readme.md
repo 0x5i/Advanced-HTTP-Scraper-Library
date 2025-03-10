@@ -12,7 +12,7 @@ Pastikan PHP Anda memiliki ekstensi **cURL** aktif.
 
 1. **Clone repositori ini:**  
    ```sh
-   git clone https://github.com/YouJerk/Advanced-HTTP-Scraper-Library/
+   git clone https://github.com/0x5i/Advanced-HTTP-Scraper-Library/
    cd Advanced-HTTP-Scraper-Library
    ```
 
